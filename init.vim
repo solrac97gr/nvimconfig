@@ -18,6 +18,12 @@ Plug 'saadparwaiz1/cmp_luasnip'
 Plug 'L3MON4D3/LuaSnip'
 Plug 'onsails/lspkind-nvim'  " Add lspkind-nvim for icons in completion
 
+" Add go.nvim for Go development
+Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'neovim/nvim-lspconfig'
+Plug 'ray-x/go.nvim'
+Plug 'ray-x/guihua.lua'
+
 " Add nvim-tree plugin
 Plug 'nvim-tree/nvim-tree.lua'
 Plug 'kyazdani42/nvim-web-devicons'  " Correct URL for file icons
@@ -307,4 +313,18 @@ require('bufferline').setup {
     sort_by = 'id' -- Options: 'id', 'extension', 'relative_directory', 'directory', 'tabs'
   }
 }
+EOF
+
+" Set up go.nvim
+lua <<EOF
+local format_sync_grp = vim.api.nvim_create_augroup("GoFormat", {})
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*.go",
+  callback = function()
+   require('go.format').goimports()
+  end,
+  group = format_sync_grp,
+})
+
+require('go').setup()
 EOF
