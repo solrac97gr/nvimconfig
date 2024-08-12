@@ -1,6 +1,9 @@
 " Initialize vim-plug
 call plug#begin('~/.local/share/nvim/plugged')
 
+" Plug 'ryanoasis/vim-devicons' Icons without colours
+Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
+
 " Add the kanagawa.nvim theme plugin
 Plug 'rebelot/kanagawa.nvim'
 
@@ -13,14 +16,15 @@ Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'saadparwaiz1/cmp_luasnip'
 Plug 'L3MON4D3/LuaSnip'
+Plug 'onsails/lspkind-nvim'  " Add lspkind-nvim for icons in completion
 
 " Add nvim-tree plugin
 Plug 'nvim-tree/nvim-tree.lua'
-Plug 'nvim-tree/nvim-web-devicons'  " Optional: for file icons
+Plug 'kyazdani42/nvim-web-devicons'  " Correct URL for file icons
 
 " Add lualine for status line
 Plug 'nvim-lualine/lualine.nvim'
-Plug 'kyazdani42/nvim-web-devicons'  " Optional: for file icons
+Plug 'kyazdani42/nvim-web-devicons'  " Correct URL for file icons
 
 " Add gitsigns for git integration
 Plug 'lewis6991/gitsigns.nvim'
@@ -31,14 +35,16 @@ Plug 'phaazon/hop.nvim'
 " Add dashboard-nvim for a startup dashboard
 Plug 'glepnir/dashboard-nvim'
 
-" Add bufferline.nvim for a better buffer line
-Plug 'akinsho/bufferline.nvim', {'tag': 'v2.*'}
-
 " Add auto-pairs for automatic closing of brackets and quotes
 Plug 'jiangmiao/auto-pairs'
 
 " Add which-key.nvim for keybinding helper
 Plug 'folke/which-key.nvim'
+
+" Add telescope.nvim for fuzzy finding
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-lua/plenary.nvim'
+
 
 call plug#end()
 
@@ -46,7 +52,7 @@ call plug#end()
 set number
 
 " Show relative line numbers
-set relativenumber
+" set relativenumber
 
 " Setup the Theme
 lua << EOF
@@ -57,6 +63,7 @@ EOF
 " Setup nvim-cmp and LuaSnip
 lua << EOF
 local cmp = require'cmp'
+local lspkind = require('lspkind')
 
 cmp.setup({
   snippet = {
@@ -98,7 +105,10 @@ cmp.setup({
     { name = 'luasnip' },
   }, {
     { name = 'buffer' },
-  })
+  }),
+  formatting = {
+    format = lspkind.cmp_format({ with_text = true, maxwidth = 50 })
+  }
 })
 
 local nvim_lsp = require('lspconfig')
@@ -197,19 +207,104 @@ lua << EOF
 require'hop'.setup()
 EOF
 
-" Setup dashboard-nvim
 lua << EOF
 require('dashboard').setup {
-  -- Customize the dashboard here if needed
+  theme = 'hyper',
+  config = {
+    week_header = {
+      enable = true,
+    },
+    shortcut = {
+      { desc = '📡 Update', group = '@property', action = 'PlugUpdate', key = 'u' },
+      {
+        icon = '🔍 ',
+        icon_hl = '@variable',
+        desc = 'Files',
+        group = 'Label',
+        action = 'Telescope find_files',
+        key = 'f',
+      },
+      {
+        desc = '🏠 Apps',
+        group = 'DiagnosticHint',
+        action = 'Telescope find_files cwd=~/Applications',
+        key = 'a',
+      },
+      {
+        desc = '📦 dotfiles',
+        group = 'Number',
+        action = 'Telescope find_files cwd=~/.dotfiles',
+        key = 'd',
+      },
+    },
+  },
 }
-EOF
-
-" Setup bufferline.nvim
-lua << EOF
-require('bufferline').setup {}
 EOF
 
 " Setup which-key.nvim
 lua << EOF
 require('which-key').setup {}
+EOF
+
+" Setup nvim-web-devicons
+lua << EOF
+require('nvim-web-devicons').setup {
+  default = true;
+}
+EOF
+
+lua << EOF
+require('telescope').setup{
+  defaults = {
+    mappings = {
+      i = {
+        ["<C-h>"] = "which_key"
+      },
+    },
+  },
+}
+EOF
+
+" Find files using Telescope command-line sugar.
+nnoremap <leader>ff <cmd>Telescope find_files<cr>
+nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+nnoremap <leader>fb <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+
+" Using Lua functions
+nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
+nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
+nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
+nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
+
+lua << EOF
+require('bufferline').setup {
+  options = {
+    numbers = "buffer_id", -- Options: "none", "ordinal", "buffer_id", "both"
+    close_command = "bdelete! %d", -- Can be a string | function, see "Mouse actions"
+    right_mouse_command = "bdelete! %d", -- Can be a string | function, see "Mouse actions"
+    left_mouse_command = "buffer %d", -- Can be a string | function, see "Mouse actions"
+    middle_mouse_command = nil, -- Can be a string | function, see "Mouse actions"
+    -- Other options
+    diagnostics = "nvim_lsp",
+    diagnostics_update_in_insert = false,
+    offsets = {
+      {
+        filetype = "NvimTree",
+        text = "File Explorer",
+        text_align = "center",
+        separator = true
+      }
+    },
+    show_buffer_icons = true, -- Disable to hide buffer icons
+    show_buffer_close_icons = true,
+    show_close_icon = true,
+    show_tab_indicators = true,
+    persist_buffer_sort = true, -- Whether or not custom sorted buffers should persist
+    separator_style = "slant", -- Options: "slant", "thick", "thin"
+    enforce_regular_tabs = false,
+    always_show_bufferline = true,
+    sort_by = 'id' -- Options: 'id', 'extension', 'relative_directory', 'directory', 'tabs'
+  }
+}
 EOF
