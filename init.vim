@@ -8,7 +8,7 @@ Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
 Plug 'mfussenegger/nvim-dap'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'rcarriga/nvim-dap-ui'
-
+Plug 'nvim-dap-vscode-js'
 " Add the kanagawa.nvim theme plugin
 Plug 'rebelot/kanagawa.nvim'
 
@@ -332,4 +332,56 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 require('go').setup()
+EOF
+
+lua << EOF
+local dap = require('dap')
+
+dap.adapters.go = function(callback, config)
+  local handle
+  local pid_or_err
+  local port = 38697
+  handle, pid_or_err = vim.loop.spawn('dlv', {
+    args = {'dap', '-l', '127.0.0.1:' .. port},
+    detached = true
+  }, function(code)
+    handle:close()
+    print('Delve exited with exit code: ' .. code)
+  end)
+  -- Wait for delve to start
+  vim.defer_fn(function()
+    dap.repl.open()
+    callback({type = "server", host = "127.0.0.1", port = port})
+  end, 1000)
+end
+
+dap.configurations.go = {
+  {
+    type = "go",
+    name = "Run app",
+    request = "launch",
+    mode = "debug",  -- Explicitly set to "debug" mode
+    program = "${workspaceFolder}/cmd/http",
+    cwd = "${workspaceFolder}",
+    dlvToolPath = vim.fn.exepath('dlv'), -- Adjust if delve is not in PATH
+    dlvFlags = {"--check-go-version=false"},
+    dlvLoadConfig = {
+      followPointers = true,
+      maxVariableRecurse = 1,
+      maxStringLen = 512,
+      maxArrayValues = 64,
+      maxStructFields = -1,
+    },
+  },
+}
+EOF
+
+lua require('dap.ext.vscode').load_launchjs(nil, { go = {'go'} })
+
+nnoremap <F5> :lua require'dap'.continue()<CR>
+
+lua << EOF
+require("dapui").setup()
+
+vim.api.nvim_set_keymap('n', '<leader>du', ':lua require("dapui").toggle()<CR>', { noremap = true, silent = true })
 EOF
