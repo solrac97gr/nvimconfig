@@ -4,6 +4,11 @@ call plug#begin('~/.local/share/nvim/plugged')
 " Plug 'ryanoasis/vim-devicons' Icons without colours
 Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
 
+" Plug install debugger for gopls
+Plug 'mfussenegger/nvim-dap'
+Plug 'nvim-neotest/nvim-nio'
+Plug 'rcarriga/nvim-dap-ui'
+
 " Add the kanagawa.nvim theme plugin
 Plug 'rebelot/kanagawa.nvim'
 
