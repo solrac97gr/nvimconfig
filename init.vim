@@ -1,8 +1,17 @@
 " Initialize vim-plug
 call plug#begin('~/.local/share/nvim/plugged')
 
+" Structure plugin for Go
+Plug 'crusj/structrue-go.nvim'
+
+" Add the goplements plugin
+Plug 'maxandron/goplements.nvim'
+
 " Plug 'ryanoasis/vim-devicons' Icons without colours
 Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
+
+" Add the navigator theme plugin
+Plug 'ray-x/navigator.lua'
 
 " Plug install debugger for gopls
 Plug 'mfussenegger/nvim-dap'
@@ -384,4 +393,13 @@ lua << EOF
 require("dapui").setup()
 
 vim.api.nvim_set_keymap('n', '<leader>du', ':lua require("dapui").toggle()<CR>', { noremap = true, silent = true })
+EOF
+
+" No need for require('lspconfig'), navigator will configure it for you
+lua <<EOF
+require'navigator'.setup()
+EOF
+
+lua << EOF
+require('structrue-go').setup()
 EOF
