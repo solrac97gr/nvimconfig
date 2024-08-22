@@ -7,6 +7,9 @@ Plug 'crusj/structrue-go.nvim'
 " Add the goplements plugin
 Plug 'maxandron/goplements.nvim'
 
+" Add this line to install Tagbar
+Plug 'preservim/tagbar'
+
 " Plug 'ryanoasis/vim-devicons' Icons without colours
 Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
 
@@ -403,3 +406,8 @@ EOF
 lua << EOF
 require('structrue-go').setup()
 EOF
+
+nnoremap <F8> :TagbarToggle<CR>
+
+"vim.g.go_pkg_outline_auto = 1  -- Automatically update outline on file change
+"vim.g.go_pkg_outline_update_on_save = 1  -- Update outline when saving the file
